@@ -7,7 +7,6 @@ BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
 SEARCH_URL = "https://www.depop.com/search/?q=James%20Avery"
-
 MEMORY_FILE = "seen_listings.json"
 
 
@@ -36,13 +35,17 @@ with sync_playwright() as p:
 
     page = browser.new_page(
         user_agent=(
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) "
+            "Mozilla/5.0 (iPhone; CPU OS 18_0 like Mac OS X) "
             "AppleWebKit/605.1.15 (KHTML, like Gecko) "
             "Version/18.0 Mobile/15E148 Safari/604.1"
         )
     )
 
-    page.goto(SEARCH_URL, wait_until="domcontentloaded", timeout=60000)
+    page.goto(
+        SEARCH_URL,
+        wait_until="domcontentloaded",
+        timeout=60000
+    )
 
     page.wait_for_timeout(5000)
 
