@@ -49,6 +49,11 @@ soup = BeautifulSoup(response.text, "html.parser")
 print("Depop response length:", len(response.text))
 print("Product links found in HTML:", response.text.count("/products/"))
 
+send_telegram(
+    f"🧪 TEST\n"
+    f"Depop page loaded successfully.\n"
+    f"Product links found: {response.text.count('/products/')}"
+)
 print(response.text[:2000])
 
 found = set()
