@@ -46,6 +46,11 @@ response.raise_for_status()
 
 soup = BeautifulSoup(response.text, "html.parser")
 
+print("Depop response length:", len(response.text))
+print("Product links found in HTML:", response.text.count("/products/"))
+
+print(response.text[:2000])
+
 found = set()
 
 for link in soup.find_all("a", href=True):
