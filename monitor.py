@@ -10,13 +10,14 @@ SEARCH_URL = "https://www.depop.com/search/?q=James%20Avery"
 
 HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) "
+        "Mozilla/5.0 (iPhone; CPU OS 18_0 like Mac OS X) "
         "AppleWebKit/605.1.15 (KHTML, like Gecko) "
         "Version/18.0 Mobile/15E148 Safari/604.1"
     )
 }
 
 MEMORY_FILE = "seen_listings.json"
+
 
 def send_telegram(message):
     response = requests.post(
@@ -30,11 +31,13 @@ def send_telegram(message):
     )
     response.raise_for_status()
 
+
 try:
     with open(MEMORY_FILE, "r") as f:
         seen = set(json.load(f))
 except (FileNotFoundError, json.JSONDecodeError):
     seen = set()
+
 
 response = requests.get(
     SEARCH_URL,
@@ -49,14 +52,18 @@ soup = BeautifulSoup(response.text, "html.parser")
 print("Depop response length:", len(response.text))
 print("Product links found in HTML:", response.text.count("/products/"))
 
+print(response.text[:2000])
+
+
 send_telegram(
     f"🧪 TEST\n"
     f"Depop page loaded successfully.\n"
     f"Product links found: {response.text.count('/products/')}"
 )
-print(response.text[:2000])
+
 
 found = set()
+
 
 for link in soup.find_all("a", href=True):
     href = link["href"]
@@ -71,6 +78,7 @@ for link in soup.find_all("a", href=True):
 
     found.add(href)
 
+
 for url in found:
     product_id = url.split("/products/")[-1]
 
@@ -84,6 +92,7 @@ for url in found:
 
     send_telegram(message)
     seen.add(product_id)
+
 
 with open(MEMORY_FILE, "w") as f:
     json.dump(list(seen), f)
