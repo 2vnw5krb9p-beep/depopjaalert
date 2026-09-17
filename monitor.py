@@ -1,38 +1,30 @@
 import os
 import json
+import re
 import requests
 
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
-SEARCH_URL = "https://www.depop.com/presentation/api/v1/search/products/"
+URL = "https://www.depop.com/brands/james-avery/"
 
 headers = {
-    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)"
+    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1"
 }
 
-params = {
-    "what": "James Avery",
-    "limit": 100,
-    "country": "us",
-    "currency": "USD",
-    "from": "in_country_search",
-    "include_like_count": "true",
-}
+response = requests.get(URL, headers=headers, timeout=30)
+response.raise_for_status()
 
-response = requests.get(
-    SEARCH_URL,
-    params=params,
-    headers=headers,
-    timeout=30
+html = response.text
+
+# Find Depop product URLs contained in the public page.
+urls = set(
+    re.findall(
+        r'https://www\.depop\.com/products/[^"\\?]+',
+        html
+    )
 )
 
-response.raise_for_status()
-data = response.json()
-
-products = data.get("products", [])
-
-# Remember listings we've already alerted you about.
 memory_file = "seen_listings.json"
 
 try:
@@ -41,35 +33,16 @@ try:
 except:
     seen = set()
 
-for item in products:
-    product_id = str(
-        item.get("id")
-        or item.get("productId")
-        or item.get("product_id")
-        or ""
-    )
+for url in urls:
+    url = url.rstrip("/")
+
+    product_id = url.split("/products/")[-1]
 
     if not product_id or product_id in seen:
         continue
 
-    title = item.get("title") or item.get("name") or "James Avery item"
-
-    price = item.get("price", "Unknown")
-
-    if isinstance(price, dict):
-        price = price.get("amount") or price.get("current") or "Unknown"
-
-    slug = item.get("slug")
-
-    if slug:
-        url = f"https://www.depop.com/products/{slug}/"
-    else:
-        url = "https://www.depop.com/search/?q=James+Avery"
-
     message = (
         "🔔 NEW JAMES AVERY ON DEPOP!\n\n"
-        f"🏷️ {title}\n"
-        f"💰 ${price}\n\n"
         f"🔗 {url}"
     )
 
