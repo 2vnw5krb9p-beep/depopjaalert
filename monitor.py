@@ -23,6 +23,7 @@ def send_telegram(message):
     response.raise_for_status()
 
 
+# Load previously seen listings
 try:
     with open(MEMORY_FILE, "r") as f:
         seen = set(json.load(f))
@@ -30,6 +31,7 @@ except (FileNotFoundError, json.JSONDecodeError):
     seen = set()
 
 
+# Open Depop
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
 
@@ -69,13 +71,7 @@ with sync_playwright() as p:
     browser.close()
 
 
-send_telegram(
-    "🧪 TEST\n"
-    "Depop browser loaded successfully.\n"
-    f"Product links found: {len(found)}"
-)
-
-
+# Alert only for listings we haven't seen before
 for url in found:
     product_id = url.split("/products/")[-1]
 
@@ -91,5 +87,6 @@ for url in found:
     seen.add(product_id)
 
 
+# Save updated memory
 with open(MEMORY_FILE, "w") as f:
     json.dump(list(seen), f)
